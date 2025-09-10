@@ -3,114 +3,157 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Content-Based Movie Recommender</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Vibrant Recommender Demo</title>
+
+  <!-- Google Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="aurora" aria-hidden="true"></div>
 
   <main class="page">
     <section class="card" role="region" aria-labelledby="title">
-      <div class="header">
+      <!-- Header -->
+      <header class="header">
         <div>
-          <h1 id="title" class="title">Content-Based Movie Recommender</h1>
-          <p class="subtitle">Pick a favorite — we’ll find colorful, similar choices using content vectors & cosine similarity.</p>
+          <h1 id="title" class="title">Colorful Recommendation Demo</h1>
+          <p class="subtitle">Pick an item and we’ll surface similar results using content signals & cosine similarity.</p>
         </div>
-        <div class="meta">🎬 Content-based · 🌈 Colorful UI · ⚡ Instant results</div>
-      </div>
+        <div class="meta">🎨 Multi-color UI · ⚡ Instant feel · ♿ Accessible</div>
+      </header>
 
+      <!-- Controls -->
       <div class="controls" role="group" aria-label="Recommendation controls">
         <div class="select-wrap">
-          <label for="movie-select">Movie</label>
-          <select id="movie-select" aria-label="Select a movie">
-            <option value="" disabled selected>Select a movie</option>
+          <label for="movie-select">Item</label>
+          <select id="movie-select" aria-label="Select an item">
+            <option value="" disabled selected>Select an item</option>
+            <option value="1">Example Item A</option>
+            <option value="2">Example Item B</option>
+            <option value="3">Example Item C</option>
           </select>
           <svg class="select-caret" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           </svg>
         </div>
-        <button id="recommend-btn" class="btn" onclick="getRecommendations()">Get Recommendations</button>
+        <button id="recommend-btn" class="btn" type="button">Get Recommendations</button>
       </div>
 
-      <div id="result-box" aria-live="polite" aria-busy="true">
-        <div id="result" class="status">Please wait, loading data...</div>
+      <!-- Results -->
+      <section id="result-box" aria-live="polite" aria-busy="false">
+        <div id="result" class="status">Choose an item and click “Get Recommendations”.</div>
 
-        <div id="results-grid" class="grid" hidden></div>
-
-        <!-- Skeletons while loading recommendations -->
-        <div id="skeletons" class="grid" style="margin-top:10px;">
-          <div class="movie">
+        <!-- Skeletons while loading -->
+        <div id="skeletons" class="grid" hidden>
+          <article class="movie">
             <div class="poster skeleton"></div>
             <div class="flex1">
               <div class="skeleton line lg"></div>
               <div class="skeleton line sm"></div>
+              <div class="skeleton pill"></div>
             </div>
             <div class="skeleton chip"></div>
-          </div>
-          <div class="movie">
+          </article>
+          <article class="movie">
             <div class="poster skeleton"></div>
             <div class="flex1">
               <div class="skeleton line lg"></div>
               <div class="skeleton line sm"></div>
+              <div class="skeleton pill"></div>
             </div>
             <div class="skeleton chip"></div>
-          </div>
-          <div class="movie">
+          </article>
+          <article class="movie">
             <div class="poster skeleton"></div>
             <div class="flex1">
               <div class="skeleton line lg"></div>
               <div class="skeleton line sm"></div>
+              <div class="skeleton pill"></div>
             </div>
             <div class="skeleton chip"></div>
-          </div>
+          </article>
         </div>
-      </div>
 
-      <p class="footer">Tip: try a popular title first for richer neighbors. ✨</p>
+        <!-- Results grid (populate dynamically if you add JS) -->
+        <div id="results-grid" class="grid" hidden>
+          <!-- Example static cards (remove if you’ll inject via JS) -->
+          <article class="movie">
+            <img class="poster" src="https://picsum.photos/seed/rec1/120/180" alt="Poster placeholder">
+            <div class="info">
+              <h3>Sample Title One</h3>
+              <div class="tags">
+                <span class="tag">Action</span>
+                <span class="tag">Sci-Fi</span>
+              </div>
+            </div>
+            <div class="score">0.92</div>
+          </article>
+          <article class="movie">
+            <img class="poster" src="https://picsum.photos/seed/rec2/120/180" alt="Poster placeholder">
+            <div class="info">
+              <h3>Sample Title Two</h3>
+              <div class="tags">
+                <span class="tag">Drama</span>
+                <span class="tag">Indie</span>
+              </div>
+            </div>
+            <div class="score">0.88</div>
+          </article>
+          <article class="movie">
+            <img class="poster" src="https://picsum.photos/seed/rec3/120/180" alt="Poster placeholder">
+            <div class="info">
+              <h3>Sample Title Three</h3>
+              <div class="tags">
+                <span class="tag">Adventure</span>
+                <span class="tag">Family</span>
+              </div>
+            </div>
+            <div class="score">0.84</div>
+          </article>
+        </div>
+      </section>
+
+      <p class="footer">Tip: Start with a popular item for stronger neighbors. ✨</p>
     </section>
   </main>
 
-  <!-- Keep your existing data & logic -->
-  <script src="data.js"></script>
-  <script src="script.js"></script>
-
-  <!-- Optional helpers (safe to remove if you handle loading in script.js) -->
+  <!-- Optional tiny JS to demo skeleton toggling without a backend -->
   <script>
-    window.uiState = {
-      setLoading(isLoading){
-        const box = document.getElementById('result-box');
-        const result = document.getElementById('result');
-        const grid = document.getElementById('results-grid');
-        const skels = document.getElementById('skeletons');
-        box.setAttribute('aria-busy', String(isLoading));
-        if(isLoading){
-          result.textContent = 'Finding similar movies…';
-          result.className = 'status';
-          skels.hidden = false;
-          grid.hidden = true;
-        } else {
-          skels.hidden = true;
-        }
-      },
-      showEmpty(msg='No recommendations found. Try another movie.'){
-        const result = document.getElementById('result');
-        const grid = document.getElementById('results-grid');
-        result.textContent = msg;
-        result.className = 'status';
+    const btn = document.getElementById('recommend-btn');
+    const select = document.getElementById('movie-select');
+    const box = document.getElementById('result-box');
+    const result = document.getElementById('result');
+    const skels = document.getElementById('skeletons');
+    const grid = document.getElementById('results-grid');
+
+    function setLoading(isLoading) {
+      box.setAttribute('aria-busy', String(isLoading));
+      if (isLoading) {
+        result.textContent = 'Searching colorful neighbors…';
+        skels.hidden = false;
         grid.hidden = true;
-      },
-      showGrid(){
-        const result = document.getElementById('result');
-        const grid = document.getElementById('results-grid');
-        result.textContent = 'Top similar movies for you:';
-        result.className = 'status';
-        grid.hidden = false;
+      } else {
+        skels.hidden = true;
       }
-    };
-    window.addEventListener('load', () => {
-      setTimeout(() => window.uiState.setLoading(false), 500);
+    }
+
+    btn.addEventListener('click', () => {
+      if (!select.value) {
+        result.textContent = 'Please select an item first.';
+        grid.hidden = true;
+        skels.hidden = true;
+        return;
+      }
+      setLoading(true);
+      setTimeout(() => {
+        setLoading(false);
+        result.textContent = 'Top similar items for you:';
+        grid.hidden = false;
+      }, 900); // fake load
     });
   </script>
 </body>
