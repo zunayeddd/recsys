@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,7 +21,7 @@
       <header class="header">
         <div>
           <h1 id="title" class="title">Content-Based Movie Recommender</h1>
-          <p class="subtitle">Pick a movie you love — we’ll find similar titles using content vectors & cosine similarity.</p>
+        <p class="subtitle">Pick a movie you love — we’ll find similar titles using content vectors & cosine similarity.</p>
         </div>
         <div class="meta">🎬 Movie data from <code>data.js</code> · ⚡ Instant results · ♿ Accessible</div>
       </header>
@@ -89,7 +88,7 @@
   <script src="data.js"></script>
   <script src="script.js"></script>
 
-  <!-- Safe fallback: populate #movie-select from MOVIES[] if your script doesn't -->
+  <!-- Fallback: populate #movie-select from MOVIES[] if your script doesn't -->
   <script>
     (function () {
       const select = document.getElementById('movie-select');
@@ -98,11 +97,9 @@
 
       function populateFromMovies() {
         if (!window.MOVIES || !Array.isArray(window.MOVIES)) return false;
-        // If only the placeholder exists, fill options
         if (select.options.length <= 1) {
           const frag = document.createDocumentFragment();
           window.MOVIES.forEach((m, i) => {
-            // Accept both string titles or objects: {id, title}
             const opt = document.createElement('option');
             const value = (m.id ?? i).toString();
             const label = (m.title ?? m.name ?? m).toString();
@@ -116,4 +113,82 @@
         return false;
       }
 
-      // Try to populate soon after load, then clear loadin
+      // Poster helpers
+      const TMDB_BASE = "https://image.tmdb.org/t/p/w342";
+      function getPosterFromMovie(m) {
+        if (!m) return null;
+        if (m.poster) return m.poster;
+        if (m.posterUrl) return m.posterUrl;
+        if (m.image) return m.image;
+        if (m.img) return m.img;
+        if (m.poster_path) return TMDB_BASE + m.poster_path;
+        return null;
+      }
+      function findPosterByTitle(title) {
+        if (!window.MOVIES || !Array.isArray(window.MOVIES)) return null;
+        const t = (title || "").toString().trim().toLowerCase();
+        const found = window.MOVIES.find(m => {
+          const name = (m.title ?? m.name ?? "").toString().trim().toLowerCase();
+          return name === t;
+        });
+        return getPosterFromMovie(found);
+      }
+      function enhanceCard(cardEl) {
+        // If a poster <img> already exists, skip
+        if (cardEl.querySelector('img.poster')) return;
+
+        // Try to infer title from h3
+        const h3 = cardEl.querySelector('h3');
+        const title = h3 ? h3.textContent.replace(/\s*\(\d{4}\)\s*$/, '') : '';
+        let src = findPosterByTitle(title);
+
+        // If your script adds data attributes, support them too:
+        if (!src) {
+          const idAttr = cardEl.getAttribute('data-id');
+          if (idAttr && window.MOVIES) {
+            const byId = window.MOVIES.find(m => String(m.id) === String(idAttr));
+            src = getPosterFromMovie(byId);
+          }
+        }
+        // Fallback placeholder
+        if (!src) src = `https://picsum.photos/seed/${encodeURIComponent(title || Math.random().toString(36).slice(2))}/120/180`;
+
+        // Insert poster as first child
+        const img = document.createElement('img');
+        img.className = 'poster';
+        img.alt = `Poster: ${title || 'Movie'}`;
+        img.src = src;
+        cardEl.insertBefore(img, cardEl.firstChild);
+      }
+
+      function enhanceGridWithPosters() {
+        const grid = document.getElementById('results-grid');
+        grid.querySelectorAll('.movie').forEach(enhanceCard);
+      }
+
+      // Observe results grid for new recommendation cards
+      const grid = document.getElementById('results-grid');
+      const observer = new MutationObserver(() => enhanceGridWithPosters());
+      observer.observe(grid, { childList: true, subtree: true });
+
+      // Also enhance right after button click (covers immediate renders)
+      const btn = document.getElementById('recommend-btn');
+      btn?.addEventListener('click', () => {
+        // show loading state if your script hasn't already
+        box?.setAttribute('aria-busy', 'true');
+        setTimeout(() => {
+          box?.setAttribute('aria-busy', 'false');
+          enhanceGridWithPosters();
+        }, 50);
+      });
+
+      // Initial populate + clear loading
+      window.addEventListener('load', () => {
+        populateFromMovies();
+        box?.setAttribute('aria-busy', 'false');
+        result.textContent = 'Select a movie and click “Get Recommendations”.';
+      });
+    })();
+  </script>
+</body>
+</html>
