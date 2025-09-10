@@ -1,29 +1,349 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Content-Based Movie Recommender</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Content-Based Movie Recommender</title>
+
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg1:#0f1020;
+      --bg2:#1a1446;
+      --bg3:#2e1065;
+      --glass:rgba(255,255,255,.12);
+      --stroke:rgba(255,255,255,.18);
+      --text:#e9e9ef;
+      --muted:#b8b8cc;
+      --accent:#7c3aed;
+      --accent-2:#22d3ee;
+      --shadow:0 20px 50px rgba(0,0,0,.45);
+      --radius:22px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      color:var(--text);
+      background: radial-gradient(1200px 1200px at 10% 10%, #1f1147 0%, #0b0b1a 60%), linear-gradient(120deg, var(--bg1), var(--bg2), var(--bg3));
+      background-attachment: fixed;
+      overflow-x:hidden;
+    }
+
+    /* Animated aurora backdrop */
+    .aurora{
+      position:fixed; inset:0;
+      pointer-events:none; z-index:0;
+      background:
+        radial-gradient(50% 40% at 15% 20%, rgba(124,58,237,.45) 0%, transparent 60%),
+        radial-gradient(45% 35% at 80% 30%, rgba(34,211,238,.35) 0%, transparent 60%),
+        radial-gradient(55% 45% at 60% 80%, rgba(99,102,241,.28) 0%, transparent 60%);
+      filter: blur(40px) saturate(140%);
+      animation: float 18s ease-in-out infinite alternate;
+    }
+    @keyframes float{
+      0% { transform: translateY(-10px) translateX(-10px) scale(1); }
+      100%{ transform: translateY(10px) translateX(10px) scale(1.02); }
+    }
+
+    .page{
+      position:relative;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 40px 18px;
+      z-index:1;
+    }
+
+    .card{
+      width:min(1100px, 96vw);
+      background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+      backdrop-filter: blur(12px);
+      border:1px solid var(--stroke);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(22px, 4vw, 36px);
+      position:relative;
+    }
+
+    .header{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:16px;
+      align-items:end;
+      margin-bottom: 18px;
+    }
+    .title{
+      line-height:1.05;
+      font-weight: 800;
+      font-size: clamp(28px, 3.2vw, 42px);
+      letter-spacing: -.02em;
+    }
+    .subtitle{
+      margin-top:6px;
+      color: var(--muted);
+      font-size: clamp(14px, 1.6vw, 16px);
+    }
+
+    .controls{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap:12px;
+      margin: 18px 0 8px;
+    }
+
+    .select-wrap{
+      position:relative;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      background: rgba(255,255,255,.08);
+      border:1px solid var(--stroke);
+      border-radius: 14px;
+      padding: 10px 14px;
+    }
+    .select-wrap label{
+      font-weight:600; color:#dcdcf3; font-size:14px; white-space:nowrap;
+    }
+    select{
+      appearance:none;
+      flex:1;
+      background:transparent;
+      border:none;
+      outline:none;
+      color:var(--text);
+      font-size:16px;
+      padding-right:28px;
+    }
+    .select-caret{
+      position:absolute; right:14px; pointer-events:none; opacity:.7;
+    }
+
+    .btn{
+      cursor:pointer;
+      border:none;
+      outline:none;
+      padding: 12px 18px;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 16px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color:#0b0b12;
+      transition: transform .08s ease, box-shadow .2s ease, filter .2s ease;
+      box-shadow: 0 10px 24px rgba(124,58,237,.35), 0 6px 16px rgba(34,211,238,.25);
+    }
+    .btn:hover{ filter: brightness(1.05) saturate(1.05); }
+    .btn:active{ transform: translateY(1px) scale(.99); }
+
+    .meta{
+      margin-top:6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* Result area */
+    #result-box{
+      margin-top: 20px;
+      border-top: 1px dashed var(--stroke);
+      padding-top: 18px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(1, minmax(0,1fr));
+      gap:14px;
+      margin-top:10px;
+    }
+    @media (min-width:620px){ .grid{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    @media (min-width:900px){ .grid{ grid-template-columns: repeat(3, minmax(0,1fr)); } }
+
+    .movie{
+      background: rgba(255,255,255,.07);
+      border: 1px solid var(--stroke);
+      border-radius: 16px;
+      padding: 14px;
+      display:flex; gap:12px; align-items:flex-start;
+      transition: transform .15s ease, background .2s ease, border-color .2s ease;
+    }
+    .movie:hover{ transform: translateY(-2px); background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.28); }
+
+    .poster{
+      width:58px; height:82px; border-radius:10px; background:rgba(0,0,0,.35);
+      flex:0 0 auto; object-fit:cover; object-position:center;
+      border:1px solid rgba(255,255,255,.18);
+    }
+    .movie h3{
+      margin:0; font-size:16px; line-height:1.2; letter-spacing:.01em;
+    }
+    .tags{ margin-top:6px; display:flex; gap:6px; flex-wrap:wrap; }
+    .tag{
+      font-size:12px; color:#0b0b12; background:linear-gradient(135deg, var(--accent-2), var(--accent));
+      padding:4px 8px; border-radius:999px; font-weight:700; opacity:.9;
+    }
+    .score{
+      margin-left:auto; font-weight:800; font-size:14px; color:#e4f7ff; background:rgba(34,211,238,.18);
+      border:1px solid rgba(34,211,238,.35); padding:6px 10px; border-radius:10px; align-self:flex-start;
+    }
+
+    /* Loading / empty states */
+    .status{
+      padding:12px 14px;
+      background: rgba(255,255,255,.07);
+      border:1px solid var(--stroke);
+      border-radius: 12px;
+      color: var(--muted);
+      font-size:14px;
+    }
+    .skeleton{
+      background: linear-gradient(90deg, rgba(255,255,255,.08), rgba(255,255,255,.14), rgba(255,255,255,.08));
+      background-size: 200% 100%;
+      animation: shimmer 1.2s linear infinite;
+      border-radius: 10px;
+    }
+    @keyframes shimmer { 0%{background-position:0% 0} 100%{background-position:-200% 0} }
+
+    .footer{
+      margin-top: 18px;
+      text-align:center; color:var(--muted);
+      font-size:12px;
+    }
+
+    /* Focus styles for accessibility */
+    .btn:focus, select:focus{
+      box-shadow: 0 0 0 3px rgba(34,211,238,.45), 0 0 0 6px rgba(124,58,237,.25);
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Content-Based Movie Recommender</h1>
-        <p>Select a movie you like, and we'll find similar ones for you!</p>
-        
-        <div class="controls">
-            <select id="movie-select">
-                <option value="" disabled selected>Select a movie</option>
-            </select>
-            <button id="recommend-btn" onclick="getRecommendations()">Get Recommendations</button>
-        </div>
-        
-        <div id="result-box">
-            <p id="result">Please wait, loading data...</p>
-        </div>
-    </div>
+  <div class="aurora" aria-hidden="true"></div>
 
-    <script src="data.js"></script>
-    <script src="script.js"></script>
+  <main class="page">
+    <section class="card" role="region" aria-labelledby="title">
+      <div class="header">
+        <div>
+          <h1 id="title" class="title">Content-Based Movie Recommender</h1>
+          <p class="subtitle">Pick a movie you love — we’ll fetch similar titles using content vectors & cosine similarity.</p>
+        </div>
+        <div class="meta">🎬 Powered by content features · ⚡ Instant results</div>
+      </div>
+
+      <div class="controls" role="group" aria-label="Recommendation controls">
+        <div class="select-wrap">
+          <label for="movie-select">Movie</label>
+          <select id="movie-select" aria-label="Select a movie">
+            <option value="" disabled selected>Select a movie</option>
+          </select>
+          <svg class="select-caret" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <button id="recommend-btn" class="btn" onclick="getRecommendations()">Get Recommendations</button>
+      </div>
+
+      <div id="result-box" aria-live="polite" aria-busy="true">
+        <div id="result" class="status">Please wait, loading data...</div>
+
+        <!-- Placeholder grid structure that your script can populate -->
+        <div id="results-grid" class="grid" hidden>
+          <!-- Example card structure your script can clone/insert:
+          <article class="movie">
+            <img class="poster" src="poster.jpg" alt="Poster: Movie Title">
+            <div class="info">
+              <h3>Movie Title (Year)</h3>
+              <div class="tags">
+                <span class="tag">Action</span>
+                <span class="tag">Sci-Fi</span>
+              </div>
+            </div>
+            <div class="score">0.87</div>
+          </article>
+          -->
+        </div>
+
+        <!-- Skeletons while loading recommendations -->
+        <div id="skeletons" class="grid" style="margin-top:10px;">
+          <div class="movie">
+            <div class="poster skeleton"></div>
+            <div style="flex:1">
+              <div class="skeleton" style="height:14px; width:70%; margin-bottom:8px;"></div>
+              <div class="skeleton" style="height:12px; width:40%;"></div>
+            </div>
+            <div class="skeleton" style="width:52px; height:28px; border-radius:10px;"></div>
+          </div>
+          <div class="movie">
+            <div class="poster skeleton"></div>
+            <div style="flex:1">
+              <div class="skeleton" style="height:14px; width:60%; margin-bottom:8px;"></div>
+              <div class="skeleton" style="height:12px; width:45%;"></div>
+            </div>
+            <div class="skeleton" style="width:52px; height:28px; border-radius:10px;"></div>
+          </div>
+          <div class="movie">
+            <div class="poster skeleton"></div>
+            <div style="flex:1">
+              <div class="skeleton" style="height:14px; width:65%; margin-bottom:8px;"></div>
+              <div class="skeleton" style="height:12px; width:38%;"></div>
+            </div>
+            <div class="skeleton" style="width:52px; height:28px; border-radius:10px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <p class="footer">Tip: try a well-known title first to see better neighbors. 🔎</p>
+    </section>
+  </main>
+
+  <!-- Keep your existing data & logic -->
+  <script src="data.js"></script>
+  <script src="script.js"></script>
+
+  <!-- Optional: tiny helper to toggle skeletons nicely if your script doesn't yet -->
+  <script>
+    // If your script sets content, you can call these helpers or copy their logic.
+    window.uiState = {
+      setLoading(isLoading){
+        const box = document.getElementById('result-box');
+        const result = document.getElementById('result');
+        const grid = document.getElementById('results-grid');
+        const skels = document.getElementById('skeletons');
+
+        box.setAttribute('aria-busy', String(isLoading));
+        if(isLoading){
+          result.textContent = 'Finding similar movies…';
+          result.className = 'status';
+          skels.hidden = false;
+          grid.hidden = true;
+        }else{
+          skels.hidden = true;
+        }
+      },
+      showEmpty(msg='No recommendations found. Try another movie.'){
+        const result = document.getElementById('result');
+        const grid = document.getElementById('results-grid');
+        result.textContent = msg;
+        result.className = 'status';
+        grid.hidden = true;
+      },
+      showGrid(){
+        const result = document.getElementById('result');
+        const grid = document.getElementById('results-grid');
+        result.textContent = 'Top similar movies for you:';
+        result.className = 'status';
+        grid.hidden = false;
+      }
+    };
+
+    // Example: automatically clear skeletons after data.js finishes populating select
+    window.addEventListener('load', () => {
+      // If your script.js populates #movie-select, we can switch off initial loading:
+      setTimeout(() => window.uiState.setLoading(false), 600);
+    });
+  </script>
 </body>
 </html>
