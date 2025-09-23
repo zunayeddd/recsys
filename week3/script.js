@@ -122,3 +122,15 @@ function getRecommendations() {
         resultElement.className = 'error';
     }
 }
+
+function cosineSimilarity(vecA, vecB) {
+  let dot = 0, magA = 0, magB = 0;
+  for (let i = 0; i < vecA.length; i++) {
+    const a = vecA[i], b = vecB[i];
+    dot += a * b;       // dot product
+    magA += a * a;      // |A|^2
+    magB += b * b;      // |B|^2
+  }
+  const denom = Math.sqrt(magA) * Math.sqrt(magB);
+  return denom ? dot / denom : 0;
+}
