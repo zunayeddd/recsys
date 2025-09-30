@@ -43,3 +43,30 @@
     <script src="script.js"></script>
 </body>
 </html>
+
+<!-- Model Anatomy -->
+<section class="card">
+  <h2>5) Model Anatomy (Embeddings, Latent Vectors & Prediction)</h2>
+  <p class="muted">...</p>
+
+  <div class="fields-2">
+    <div class="summary">
+      <div id="embeddingSummary">Embeddings are initialized after you parse data.</div>
+    </div>
+    <div class="row">
+      <button id="showUserVecBtn" class="ghost">Show User Latent Vector</button>
+      <button id="showItemVecBtn" class="ghost">Show Movie Latent Vector</button>
+      <button id="showBreakdownBtn" class="primary">Show Prediction Breakdown</button>
+    </div>
+  </div>
+
+  <div class="scroll">
+    <table id="latentUserTable" class="table"></table>
+  </div>
+  <div class="scroll">
+    <table id="latentItemTable" class="table"></table>
+  </div>
+  <div class="scroll">
+    <table id="predBreakdownTable" class="table"></table>
+  </div>
+</section>
