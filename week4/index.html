@@ -1,45 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matrix Factorization Movie Recommender</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Matrix Factorization Movie Recommender</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Matrix Factorization Movie Recommender</h1>
-            <p>Train a collaborative filtering model in your browser using TensorFlow.js</p>
-        </header>
-        
-        <main>
-            <div class="controls">
-                <div class="input-group">
-                    <label for="user-select">Select User:</label>
-                    <select id="user-select">
-                        <option value="">Loading users...</option>
-                    </select>
-                </div>
-                
-                <div class="input-group">
-                    <label for="movie-select">Select Movie:</label>
-                    <select id="movie-select">
-                        <option value="">Loading movies...</option>
-                    </select>
-                </div>
-                
-                <button id="predict-btn" onclick="predictRating()" disabled>Predict Rating</button>
-            </div>
-            
-            <div id="status" class="status">Loading data and training model...</div>
-            <div id="result" class="result"></div>
-        </main>
-    </div>
+  <!-- Page background aura -->
+  <div class="bg-aurora" aria-hidden="true"></div>
 
-    <!-- Load TensorFlow.js first, then our data module, then our main script -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-    <script src="data.js"></script>
-    <script src="script.js"></script>
+  <div class="page">
+    <!-- Header / Hero -->
+    <header class="hero">
+      <div class="hero-badge">TensorFlow.js • In-Browser</div>
+      <h1 class="hero-title">Matrix Factorization Movie Recommender</h1>
+      <p class="hero-subtitle">
+        Train a collaborative filtering model in your browser and predict ratings instantly.
+      </p>
+    </header>
+
+    <main class="grid">
+      <!-- Controls Card -->
+      <section class="card">
+        <div class="card-head">
+          <h2>1) Choose User &amp; Movie</h2>
+          <p class="muted">The dropdowns populate after data loads and training starts.</p>
+        </div>
+
+        <div class="form">
+          <div class="form-row">
+            <label for="user-select">Select User</label>
+            <select id="user-select" aria-label="Select user">
+              <option value="">Loading users...</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <label for="movie-select">Select Movie</label>
+            <select id="movie-select" aria-label="Select movie">
+              <option value="">Loading movies...</option>
+            </select>
+          </div>
+
+          <div class="actions">
+            <button id="predict-btn" onclick="predictRating()" disabled>
+              🎯 Predict Rating
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Status & Result Card -->
+      <section class="card">
+        <div class="card-head">
+          <h2>2) Status &amp; Result</h2>
+          <p class="muted">Watch training progress and see the predicted rating.</p>
+        </div>
+
+        <div class="status-stack">
+          <div id="status" class="status">Loading data and training model...</div>
+
+          <!-- Optional progress bar (script can set width) -->
+          <div class="progress">
+            <div id="train-progress" class="progress-bar" style="width: 0%"></div>
+          </div>
+
+          <div id="result" class="result" role="status" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <!-- About Card -->
+      <section class="card wide">
+        <div class="card-head">
+          <h2>About this Demo</h2>
+        </div>
+        <div class="about">
+          <div class="about-item">
+            <div class="about-emoji">🧠</div>
+            <div>
+              <h3>Matrix Factorization</h3>
+              <p class="muted">Learns user &amp; item <em>latent vectors</em> (embeddings) that capture tastes and attributes.</p>
+            </div>
+          </div>
+          <div class="about-item">
+            <div class="about-emoji">⚡</div>
+            <div>
+              <h3>Runs in the Browser</h3>
+              <p class="muted">No server required. Training and predictions use your device with TensorFlow.js.</p>
+            </div>
+          </div>
+          <div class="about-item">
+            <div class="about-emoji">🎬</div>
+            <div>
+              <h3>MovieLens Format</h3>
+              <p class="muted">Parses <code>u.item</code> and <code>u.data</code>, then trains on user–movie ratings.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      Built with <span class="heart">♥</span> and <code>TensorFlow.js</code>.
+    </footer>
+  </div>
+
+  <!-- Required order: TFJS → data.js → script.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+  <script src="data.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
