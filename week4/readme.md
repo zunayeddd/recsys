@@ -56,10 +56,10 @@ This file contains the TensorFlow.js model definition, training, and prediction 
     -   This function will define the Matrix Factorization architecture.
     -   **Inputs:** Create two input layers, one for user IDs (`userInput`) and one for movie IDs (`movieInput`).
     -   **Embedding Layers:**
-        -   ?????
-        -   ?????
-    -   **Latent Vectors:** ????
-    -   **Prediction:** ????
+        -   User Embedding: maps each user ID to a dense vector of size latentDim.
+        -   Movie Embedding: maps each movie ID to a dense vector of size latentDim.
+    -   **Latent Vectors:** Flatten the embeddings to obtain the user latent vector p_u and the movie latent vector q_i
+    -   **Prediction:** Compute the dot product of the user and movie latent vectors: r^u,i​=pu​⋅qi
     -   **Model Creation:** Create the `tf.model` with the defined inputs and the prediction output.
     -   **Return** the created model.
 
